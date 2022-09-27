@@ -1,54 +1,42 @@
-## 项目总结
-[开发记录](https://devin.ren/project/cms-vue3/01-%E9%A1%B9%E7%9B%AE%E6%90%AD%E5%BB%BA%E8%A7%84%E8%8C%83.html)  
+# 后台管理系统
+## token 登录  
+  
+### 图解  
+当用户点击登录按钮后    
+  
+![图解](https://api2.mubu.com/v3/document_image/e993d6a4-5829-4159-bbaf-7120afff1224-11752736.jpg)  
+  
+### 详细过程  
+1. 在登录页点击登录的时候，前端会带着用户名和密码去调用后端的登录接口.    
+  
+![过程1](https://cdn.jsdelivr.net/gh/jsdevin/imgBed/img/202206232225710.png)    
+  
+`formRef.value?.validate()`是验证form表单中输入的账号密码是否符合表单规则(比如密码需要在3个数字以上),如果验证通过返回true,然后就会将值传输给validate里的箭头函数的valid形参.      
+图中有一个dispatch函数，它的作用机理是调用store中action的方法，然后通过action的方法调用mutation方法，再通过mutation方法改变state，达到改变state中数据的目的。    
+[关于dispatch的详细介绍点这里](https://www.jianshu.com/p/ef348d1c8f2b)  
+  
+2. 后端收到请求，验证用户名和密码，验证失败，会返回错误信息，前端提示相应错误信息，如果验证成功，就会给前端返回一个token  
+3. 前端拿到token，将token储存到Vuex和localStorage中，并跳转页面，即登录成功  
+![过程3](https://api2.mubu.com/v3/document_image/9eececc4-d391-41af-9229-65a8bb9f2e9a-11752736.jpg)  
+  
+1. 前端每次跳转至需要具备登录状态的页面时，都需要判断当前token是否存在，不存在就跳转到登录页，存在则正常跳转(通常封装在路由守卫中)  
+2. 另外，在向后端发送其他请求时，需要在请求头中带上token(项目中通常封装在请求拦截器中)，后端判断请求头中有无token，有则验证该token，验证成功就正常返回数据，验证失败(如已过期)则返回相应错误码。前端拿到错误信息，清除token并回退至登录页。  
+  
+### 补充：token、cookie、sessionStorage、localStorage  
+[Token放在 cookie, sessionStorage 和 localStorage 中的区别](https://blog.csdn.net/qq_48960335/article/details/117674525)    
+  
+token 存储于 localStorage 中，长期有效，只要不删掉就都有效。容易受到xss攻击  
+token 存储于 sessionStorage 中，短期有效，浏览器关闭自动删除。容易受到xss攻击  
+token 存储于 cookie 中，调用接口就会自动发送。容易受到CSRF攻击  
+  
+  
+> xss攻击：是一种注入代码攻击，通过在网站里注入script代码，当访问者浏览网站的时候通过注入的script代码窃取用户信息，盗用用户身份等  
+> CSRF: 跨站点请求伪造，攻击者盗用已经认证过的用户信息，以用户信息的名义进行操作(转账，购买商品等),由于身份已经认证过了，所以网站会认为此操作是用户本人操作。 CSRF 并不能拿到用户信息，但它可以盗用用户的凭证进行操作。  
+  
+  
 
-最终效果：  
-
-![最终效果](https://api2.mubu.com/v3/document_image/cba71f40-c2c7-4c84-836c-c7ef8badd858-11752736.jpg)
-## 组件的封装逻辑
-组件封装逻辑：  
-
-![分层](https://api2.mubu.com/v3/document_image/878848b1-5ab8-4295-b717-555bbc62d095-11752736.jpg)
-
-HyForm组件、page-search组件等等都是公共组件，  
-假如想要弄一个user.vue页面，只需要创建一些配置文件，然后使用这些公共组件可以很快构建出来页面，  
-如果需要进行组件间的通信，比如page-search组件和page-content组件需要传输数据，可以先将数据用emit发送到user组件，然后在user组件中绑定给page-content标签，再在page-content组件中用props接收即可。  
-至于请求数据和处理数据则根据情况决定。
-
-
-## 登录逻辑
-### 图解
-当用户点击登录按钮后  
-
-![图解](https://api2.mubu.com/v3/document_image/e993d6a4-5829-4159-bbaf-7120afff1224-11752736.jpg)
-
-### 详细过程
-1. 在登录页点击登录的时候，前端会带着用户名和密码去调用后端的登录接口.  
-
-![过程1](https://cdn.jsdelivr.net/gh/jsdevin/imgBed/img/202206232225710.png)  
-
-`formRef.value?.validate()`是验证form表单中输入的账号密码是否符合表单规则(比如密码需要在3个数字以上),如果验证通过返回true,然后就会将值传输给validate里的箭头函数的valid形参.    
-图中有一个dispatch函数，它的作用机理是调用store中action的方法，然后通过action的方法调用mutation方法，再通过mutation方法改变state，达到改变state中数据的目的。  
-[关于dispatch的详细介绍点这里](https://www.jianshu.com/p/ef348d1c8f2b)
-
-2. 后端收到请求，验证用户名和密码，验证失败，会返回错误信息，前端提示相应错误信息，如果验证成功，就会给前端返回一个token
-3. 前端拿到token，将token储存到Vuex和localStorage中，并跳转页面，即登录成功
-![过程3](https://api2.mubu.com/v3/document_image/9eececc4-d391-41af-9229-65a8bb9f2e9a-11752736.jpg)
-
-1. 前端每次跳转至需要具备登录状态的页面时，都需要判断当前token是否存在，不存在就跳转到登录页，存在则正常跳转(通常封装在路由守卫中)
-2. 另外，在向后端发送其他请求时，需要在请求头中带上token(项目中通常封装在请求拦截器中)，后端判断请求头中有无token，有则验证该token，验证成功就正常返回数据，验证失败(如已过期)则返回相应错误码。前端拿到错误信息，清除token并回退至登录页。
-
-### 登录结果
-1. 登录成功  
-![成功1](https://api2.mubu.com/v3/document_image/55042efe-acd9-42a1-af71-5907064e3014-11752736.jpg)
-![详细](https://api2.mubu.com/v3/document_image/69415abd-e264-4d45-81fa-d6a85ed9cde3-11752736.jpg)
-
-2. 登录失败  
-![报错](https://api2.mubu.com/v3/document_image/7caa6b9e-1efe-4dfb-9ce5-cca730a3f216-11752736.jpg)  
-![失败](https://api2.mubu.com/v3/document_image/78809e14-e81f-46f4-b4e1-0132a49dd79b-11752736.jpg)  
-![详细](https://api2.mubu.com/v3/document_image/5783877c-37d5-4446-8542-43499cbd3a73-11752736.jpg)
-
-## 权限控制    
-在开始动态路由之前，我们可以学习一下权限控制，虽说这是后端要实现的内容，但是我们了解一下也不妨，如果没意向去了解，可以直接跳过，不影响。
+## 权限管理    
+权限控制，虽说这是后端要实现的内容，但是我们了解一下也不妨。  
 
 权限控制是后台管理系统中核心的知识点，动态路由与之也有关系，权限控制决定着动态路由能显示的内容。  
     
@@ -84,32 +72,30 @@ HyForm组件、page-search组件等等都是公共组件，
 1. 从接口处获得对应用户的权限：    
     用户输入账号密码进行请求登录，登录成功之后返回特定的id和token以及userInfo`(用户信息)`, userInfo信息中会包含role`(角色)`，由role我们也就可以获得了该角色的id和name,有了角色的id和name，我们就可以确定userMenus`(权限)`。       
   
-2. 有了具体的userMenus，**接下来就是前端的活了**。需要注意的是，用户所具有的权限就是菜单项所要渲染的，所以用户权限 == 菜单项    
+2. 有了具体的userMenus，**接下来就是前端的活了**。需要注意的是，用户所具有的权限就是菜单项所要展示的，所以用户权限 == 菜单项    
   
 
-## 动态路由    
-### 预期效果    
+### 权限展示(动态路由) 
+不同的角色有着不同的权限，不同的权限对应着左侧不同的菜单，通过动态路由来展示角色的权限控制。
+
+#### 预期效果    
     
 ![动态路由需要实现的效果](https://api2.mubu.com/v3/document_image/de0f68e7-dfd8-412c-a09b-1ee432014244-11752736.jpg)    
+
+1. 动态路由：用户点击菜单项A、S、F、E、T, main部分会依次显示菜单项A、S、F、E、T对应的页面。动态路由就是菜单和路由的映射关系。      
     
-1. 触发条件：用户点击左侧菜单的菜单项A      
-    
-2. 预期效果：main部分显示A菜单项对应的内容。      
-    
-3. 动态路由：用户点击菜单项A、S、F、E、T, main部分会依次显示菜单项A、S、F、E、T对应的页面。动态路由就是菜单和路由的映射关系。      
-    
-4. 简单说明动态路由**实现原理**：      
+2. 简单说明动态路由**实现原理**：      
     用户点击了菜单项A，我们就能获得菜单项A对应的url`(也就是路径path)`，然后我们将路径path替换到地址栏中，浏览器就会访问地址栏path对应的component，通过`<router-view />`占位，我们可以将component内容替换到`<router-view />`占据的位置    
     
 动态路由演示：    
 ![演示动态路由](https://api2.mubu.com/v3/document_image/e5850cd9-6c06-444f-bb2f-54593fa2ea21-11752736.jpg)  
  
-### 实现方式  
-#### 方法一：写死所有的路由    
+#### 实现方式  
+##### 方法一：写死所有的路由    
   
 <img src='https://api2.mubu.com/v3/document_image/68f9edeb-dfc5-48a4-b49f-181c07a46e6f-11752736.jpg' style='width: 200px;'>  
   
-以上图系统管理模块中四个小功能为例，假设超级管理员的权限是全部功能可见，而一般管理员权限仅仅可见用户管理和角色管理，  
+以上图**系统管理**模块中四个小功能为例，假设超级管理员的权限是全部功能可见，而一般管理员权限仅仅可见用户管理和角色管理，  
 
 以方法一来实现动态路由，就是不管你什么角色什么权限，四个小功能的路由直接写死，全部注册在系统管理路由的children下，  
 
@@ -151,14 +137,14 @@ const routes = [
 直接写死所有的小功能，会将路由全部注册，一般管理员虽然看不到部门管理和菜单管理的按钮，但是可以通过在**地址栏**手动输入路由`/systemManege/depManege`去到**本来不能访问**的页面。  
   
   
-#### 方法二：给不同角色注册不同的路由  
+##### 方法二：给不同角色注册不同的路由  
 给不同角色的children预先注册好不同的path
   
 ![方法2](https://api2.mubu.com/v3/document_image/f9ed54ff-b4fa-40b7-98bc-a1b5a584913b-11752736.jpg)  
   
 动态路由实现原理：    
 用户登录成功后，接口会返回信息userInfo，从userInfo中我们可以得到登陆的用户的角色role.name，    
-已知角色，我们就可以去查询并得知它具有的权限，然后将其权限`二级菜单项`(相对于给了url)动态地添加到数组router中,   
+已知角色，我们就可以去查询并得知它具有的权限，然后将其权限`二级菜单项`(相对于给了url)动态地添加到数组route中,   
 然后**由url去寻找path,再由path去确定component**，最终将component页面渲染出来即可。  
   
 看似很完美，解决了方法一中注册多余路由的问题，其实方法2还是存在缺陷的。  
@@ -167,7 +153,7 @@ const routes = [
 对于需要**新增大量角色**的场景，非常麻烦，比如我又新增了一个运营角色，它又有了新功能，我们就要去**修改前端的/router/index.ts文件下的/main/children属性代码，然后重新部署**，每新增一个角色都需要修改一次代码然后重新部署，维护起来非常不好。  
   
   
-#### 方法三：由菜单url动态生成路由映射  
+##### 方法三：由菜单url动态生成路由映射  
   
 ![方法3](https://api2.mubu.com/v3/document_image/ba4d8f59-d428-4ceb-9a35-712d25d92a97-11752736.jpg)  
   
@@ -188,8 +174,8 @@ const routes = [
   
 本项目动态路由实现方式采用的是方法三。  
 
-### 代码实现  
-#### 步骤一：创建 component 和 path  
+#### 代码实现  
+##### 步骤一：创建 component 和 path  
  在views中创建二级菜单项的.vue文件，在router创建二级菜单项组件的path信息    
   
 以系统管理下的菜单管理menu为例    
@@ -211,7 +197,7 @@ export default {
   
 搞定了path和component后，我们就可以着手去实现动态路由了    
   
-#### 步骤二：获取接口返回的所有菜单url  
+##### 步骤二：获取接口返回的所有菜单url  
 获取所有菜单的url信息
 
 ![获取url](https://api2.mubu.com/v3/document_image/3867da57-9c16-440a-9461-53391ae7cbc8-11752736.jpg)  
@@ -225,7 +211,7 @@ export default {
 <img src='https://api2.mubu.com/v3/document_image/d5744fb6-598d-47f8-a645-6beac775572c-11752736.jpg' style='width: 400px; height: 200px' alt='所有的url'>    
 <!-- ![所有的url](https://api2.mubu.com/v3/document_image/d5744fb6-598d-47f8-a645-6beac775572c-11752736.jpg) -->  
   
-#### 步骤三：处理返回的菜单url  
+##### 步骤三：处理返回的菜单url  
 1. 将url都添加到allRouter中    
 ```ts  
 // map-menus.ts  
@@ -279,11 +265,11 @@ main下的children属性子路由path添加完成，至此动态路由的跳转�
 
 接下来就要去菜单模板组件中**模拟用户点击菜单项**即可，由菜单项url和路由path以及组件的关系，确定需要渲染的组件。比如点击了菜单项A，就要将菜单项A的url添加到router中，由router根据url去选择path, 由path确定需要渲染的组件，然后由`<router-view />`确定最终显示的位置。  
   
-#### 步骤四：模拟用户点击菜单项  
+##### 步骤四：模拟用户点击菜单项  
 需要实现的效果：点击菜单项，就跳转到该菜单项对应的页面。  
   
 这一步骤在`nav-menu.vue`菜单模板组件中完成, 首先我们需要给菜单项绑定一个点击事件@click，一旦点击，就将该菜单项的url添加到router中，然后由`<router-view />`占据的位置显示出来。  
-  
+
 我们先来了解一下nav-menu的具体内容：    
 ![nav-menu](https://api2.mubu.com/v3/document_image/9d36b449-bfe5-429d-a6b7-f1abfcf29aef-11752736.jpg)  
   
@@ -301,10 +287,12 @@ main下的children属性子路由path添加完成，至此动态路由的跳转�
    
 ![演示动态路由](https://api2.mubu.com/v3/document_image/e5850cd9-6c06-444f-bb2f-54593fa2ea21-11752736.jpg)  
   
-动态路由到此结束，后续学习有所感悟再补充。  
-  
 
+## 分层开发 - 高复用组件
+分层开发：  
 
+![分层](https://api2.mubu.com/v3/document_image/878848b1-5ab8-4295-b717-555bbc62d095-11752736.jpg)
 
-
-
+HyForm组件、page-search组件等等都是公共组件，  
+假如想要弄一个user.vue页面，只需要创建一些配置文件，然后使用这些公共组件可以很快构建出来页面，  
+如果需要进行组件间的通信，比如page-search组件和page-content组件需要传输数据，可以先将数据用emit发送到user组件，然后在user组件中绑定给page-content标签，再在page-content组件中用props接收即可。  
